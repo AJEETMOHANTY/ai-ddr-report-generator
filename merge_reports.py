@@ -3,8 +3,8 @@ import re
 
 def extract_temperature_data(thermal_text):
     """
-    Extract hotspot/coldspot temperatures
-    from thermal report using regex
+    Extract hotspot and coldspot values
+    from thermal report
     """
 
     hotspots = re.findall(
@@ -25,36 +25,32 @@ def extract_temperature_data(thermal_text):
 
 def merge_reports(inspection_text, thermal_text):
     """
-    Merge inspection + thermal findings
-
-    Removes duplicate issues
-    Adds thermal confirmation
+    Dynamically detect issues
+    from inspection report
     """
 
     merged_data = {}
 
-    # Hall issue detection
-    if "Hall" in inspection_text and "dampness" in inspection_text:
-        merged_data["Hall"] = {
-            "issue": "Skirting dampness",
-            "thermal_status": "Moisture likely detected"
-        }
+    issue_mapping = {
+        "Hall": "Skirting dampness",
+        "Bedroom": "Bedroom dampness",
+        "Master Bedroom": "Wall dampness + efflorescence",
+        "Kitchen": "Kitchen dampness",
+        "Common Bathroom": "Tile gaps + plumbing issues",
+        "Master Bathroom": "Tile hollowness",
+        "Parking": "Parking leakage",
+        "External wall": "Cracks detected"
+    }
 
-    # Kitchen issue detection
-    if "Kitchen" in inspection_text:
-        merged_data["Kitchen"] = {
-            "issue": "Kitchen dampness",
-            "thermal_status": "Cold spots observed"
-        }
+    for area, issue in issue_mapping.items():
 
-    # Master Bedroom issue detection
-    if "Master Bedroom" in inspection_text:
-        merged_data["Master Bedroom"] = {
-            "issue": "Wall dampness + efflorescence",
-            "thermal_status": "Moisture confirmed"
-        }
+        if area.lower() in inspection_text.lower():
 
-    # Extract temperature summary
+            merged_data[area] = {
+                "issue": issue,
+                "thermal_status": "Thermal verification available"
+            }
+
     temp_data = extract_temperature_data(thermal_text)
 
     merged_data["thermal_summary"] = temp_data
