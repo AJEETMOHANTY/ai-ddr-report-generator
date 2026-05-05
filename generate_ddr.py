@@ -1,45 +1,105 @@
-import google.generativeai as genai
 import os
+import google.generativeai as genai
 from dotenv import load_dotenv
 
-# Explicitly load .env from current folder
-load_dotenv(dotenv_path=".env")
+# Load API key from .env
+load_dotenv()
 
-# Get API key from .env
 api_key = os.getenv("GEMINI_API_KEY")
 
-# Debug check
-print("Loaded API Key:", api_key)
+if not api_key:
+    raise ValueError("Gemini API key not found in .env file")
 
 # Configure Gemini
 genai.configure(api_key=api_key)
 
-# Load model
+# Use model
 model = genai.GenerativeModel("gemini-2.5-flash")
 
 
 def generate_ddr(merged_data):
     """
     Generate final DDR report using Gemini
+
+    This function:
+    1. Removes internal metadata like page/image references
+    2. Sends clean structured data to Gemini
+    3. Generates professional DDR output
     """
 
+    # -----------------------------------
+    # Remove page/image metadata
+    # -----------------------------------
+    cleaned_data = {}
+
+    for area, details in merged_data.items():
+
+        # Keep thermal summary as it is
+        if area == "thermal_summary":
+            cleaned_data[area] = details
+            continue
+
+        # Remove page/image metadata
+        cleaned_data[area] = {
+            "issue": details["issue"],
+            "thermal_status": details["thermal_status"]
+        }
+
+    # -----------------------------------
+    # Gemini prompt
+    # -----------------------------------
     prompt = f"""
-    Generate a professional DDR report.
+Generate a professional Detailed Diagnostic Report (DDR).
 
-    Input Data:
-    {merged_data}
+Inspection + Thermal Findings:
+{cleaned_data}
 
-    Include:
-    1. Property Issue Summary
-    2. Area-wise Observations
-    3. Root Cause
-    4. Severity
-    5. Recommendations
-    6. Missing Information
+Required report format:
 
-    Do not hallucinate.
-    """
+1. Property Issue Summary
+- Give overall summary of issues
 
-    response = model.generate_content(prompt)
+2. Area-wise Observations
+For each area use this format:
 
-    return response.text
+Area Name:
+Issue:
+Thermal Validation:
+Observation:
+
+Example:
+
+Hall:
+Issue: Skirting dampness
+Thermal Validation: Moisture detected
+Observation: Dampness observed near lower wall skirting.
+
+Bedroom:
+Issue: Wall dampness
+Thermal Validation: Cold spots detected
+Observation: Moisture traces visible on bedroom walls.
+
+3. Root Cause Analysis
+
+4. Severity Assessment
+
+5. Recommendations
+
+6. Missing Information
+
+Rules:
+- Do NOT create tables
+- Do NOT mention page references
+- Do NOT mention image references
+- Do NOT use markdown symbols like ** or *
+- Keep report professional
+- Keep observations structured
+"""
+
+    try:
+        response = model.generate_content(prompt)
+
+        return response.text
+
+    except Exception as e:
+        return f"Error generating DDR: {str(e)}"

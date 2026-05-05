@@ -47,12 +47,12 @@ if st.button("Generate Report"):
         thermal_text = extract_text(thermal_path)
 
         st.write("Extracting images...")
-        extract_images(
+        inspection_image_map = extract_images(
             inspection_path,
             "output/inspection_images"
         )
 
-        extract_images(
+        thermal_image_map = extract_images(
             thermal_path,
             "output/thermal_images"
         )
@@ -72,7 +72,9 @@ if st.button("Generate Report"):
 
         st.write("Generating PDF...")
         pdf_path = generate_pdf(
-            final_report
+            final_report,
+            merged_data,
+            inspection_image_map
         )
 
         # Download button
