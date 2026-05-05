@@ -166,7 +166,7 @@ Some PDF pages contained multiple room observations, making exact image-to-room 
 ## Demo
 
 Loom video link:
-(Add your Loom link here)
+https://drive.google.com/file/d/1clcW3eg3HcoJxtONg4brYDH0to3E1Hlf/view?usp=drive_link
 ---
 
 ## Author
